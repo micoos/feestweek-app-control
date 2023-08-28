@@ -1,17 +1,15 @@
-import logo from './logo.svg';
+import React, { useState, useRef } from 'react';
 import './App.css';
-import { useState, useRef } from 'react';
 
 function App() {
   const [response, setResponse] = useState('');
   const messageRef = useRef(null);
+  const urlRef = useRef(null);
 
   const handleRestartDisplay = () => {
-    fetch('http://127.0.0.1:8090/restart')
+    fetch('/restart', { method: 'POST' })
       .then(response => {
-        if (!response.ok) {
-          throw new Error('Failed to restart display');
-        }
+        console.log(response);
         setResponse('Display restarted successfully');
         setTimeout(() => {
           setResponse('');
@@ -26,17 +24,15 @@ function App() {
       });
   };
 
-  const handleShowMessage = message => {
-    if(message==='') { 
-      setResponse('Please enter a message');
-      setTimeout(() => {
-        setResponse('');
-      }, 10000);
-      return;
-    }
-    fetch(`http://127.0.0.1:8090/show?message=${message}`)
+  const handleShowMessage = (message) => {
+    fetch('/message', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message })
+    })
       .then(response => {
-        if (!response.ok) {
+        console.log(response);
+        if (response.status !== 200) {
           throw new Error('Failed to show message');
         }
         messageRef.current.value = '';
@@ -54,11 +50,43 @@ function App() {
       });
   };
 
+  const handleScrapeUrl = () => {
+    const url = urlRef.current.value;
+    if(url == "") { 
+      setResponse('No URL given');
+      setTimeout(() => {
+        setResponse('');
+      }, 10000);
+      return;
+    }
+    fetch('/scrape', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
+    })
+      .then(response => {
+        console.log(response);
+        setResponse(`Scraped URL "${url}" successfully`);
+        setTimeout(() => {
+          setResponse('');
+        }, 10000);
+      })
+      .catch(error => {
+        console.error(error);
+        setResponse(`Failed to scrape URL "${url}"`);
+        setTimeout(() => {
+          setResponse('');
+        }, 10000);
+      });
+  };
+
   return (
     <div className="App">
       <button onClick={handleRestartDisplay}>Restart Display</button>
+      <input placeholder="https//eenurlhier.nl" type="text" id="url" ref={urlRef} />
+      <button onClick={handleScrapeUrl}>Scrape URL</button>
       <button onClick={() => handleShowMessage(messageRef.current.value)}>Show Message</button>
-      <textarea type="text" id="message" ref={messageRef} />
+      <textarea placeholder="je bericht" type="text" id="message" ref={messageRef} />      
       {response && <div className="status">{response}</div>}
     </div>
   );
