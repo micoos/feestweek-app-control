@@ -7,7 +7,7 @@ function App() {
   const urlRef = useRef(null);
 
   const handleRestartDisplay = () => {
-    fetch('http://raspberrypi:8090/restart', { method: 'POST' })
+    fetch('http://raspberrypi:8090/restart', { method: 'GET' })
       .then(response => {
         console.log(response);
         setResponse('Display restarted successfully');
