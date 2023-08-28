@@ -7,7 +7,7 @@ function App() {
   const urlRef = useRef(null);
 
   const handleRestartDisplay = () => {
-    fetch('http://raspberrypi:3001/restart', { method: 'POST' })
+    fetch('http://raspberrypi:8090/restart', { method: 'POST' })
       .then(response => {
         console.log(response);
         setResponse('Display restarted successfully');
@@ -25,7 +25,7 @@ function App() {
   };
 
   const handleShowMessage = (message) => {
-    fetch('http://raspberrypi:3001/message', {
+    fetch('http://raspberrypi:8090/message', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message })
@@ -59,7 +59,7 @@ function App() {
       }, 10000);
       return;
     }
-    fetch('http://raspberrypi:3001/scrape', {
+    fetch('http://raspberrypi:8090/scrape', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url })
