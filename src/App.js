@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import './App.css';
 import mqtt from 'mqtt/dist/mqtt'
 
-const mqttClient  = mqtt.connect('ws://raspberrypi:9001', { clientId: 'control_' + Math.random().toString(16).substr(2, 8)})
+const mqttClient  = mqtt.connect('ws://swarm2:9001', { clientId: 'control_' + Math.random().toString(16).substr(2, 8)})
 
 mqttClient.on('connect', function () {
   mqttClient.subscribe('control/action', function (err) { console.log(err) }); //to do error handling
