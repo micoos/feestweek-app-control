@@ -1,56 +1,147 @@
-body {
-  background: #000;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-}
-
-.App {
+/* App.css */
+.app-container {
+  min-height: 100vh;
+  background-color: #f7fafc;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.app-content {
+  position: relative;
+  max-width: 36rem;
+  margin: auto;
+  padding: 2.5rem;
+  background-color: white;
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  border-radius: 1.5rem;
+}
+
+.app-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.app-header h2 {
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.app-buttons,
+.dj-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.btn {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  color: white;
+  text-align: center;
+  cursor: pointer;
+  display: flex;
   align-items: center;
+  justify-content: center;
+}
+
+.btn-red {
+  background-color: #f56565;
+}
+
+.btn-green {
+  background-color: #48bb78;
+}
+
+.btn-yellow {
+  background-color: #ecc94b;
+}
+
+.btn-black {
+  background-color: #000000;
+}
+
+.btn-blue {
+  background-color: #4299e1;
+}
+
+.btn-purple {
+  background-color: #9f7aea;
+}
+
+.btn-orange {
+  background-color: #ed8936;
+}
+
+.icon {
+  margin-right: 0.5rem;
+}
+
+.app-input {
+  margin-bottom: 1.5rem;
+}
+
+.input {
   width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #cbd5e0;
+  border-radius: 0.375rem;
+  margin-bottom: 0.5rem;
 }
 
-button {
-  margin: 15px;
-  width: 80%;
-  max-width: 300px;
-  padding: 15px 0px 15px 0px;
-  background: #a22b2b;
-  border: 0px;
-  color: #FFF;
+.dj-controls {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 1rem;
+}
+
+.dj-controls h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.playlist {
+  margin-top: 1rem;
+}
+
+.playlist h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.playlist-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #edf2f7;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  margin-bottom: 0.5rem;
+}
+
+.current-track {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.current-track img {
+  max-width: 100%;
+  border-radius: 0.375rem;
+  margin-bottom: 0.5rem;
+}
+
+.response {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: #ebf8ff;
+  color: #3182ce;
+  border-radius: 0.375rem;
+}
+
+.current-track {
   font-weight: bold;
-  border-radius: 6px;
-}
-
-textarea {
-  margin: 10px;
-  width: 80%;
-  max-width: 300px;
-  border-radius: 6px;
-  border: 0px;
-  height: 20vh;
-  color: #FFF;
-  background-color: #333;
-  padding: 10px;
-}
-
-input {
-  margin: 10px;
-  width: 80%;
-  max-width: 300px;
-  border-radius: 6px;
-  border: 0px;
-  color: #FFF;
-  background-color: #333;
-  padding: 10px;
-}
-
-button:active {
-  transform: scale(0.95);
-}
-
-.status {
-  color: #CCC;
+  background-color: #f0f0f0;
 }

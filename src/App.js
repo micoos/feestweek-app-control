@@ -1,73 +1,119 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
-import mqtt from 'mqtt/dist/mqtt'
+import mqtt from 'mqtt/dist/mqtt';
+import { RefreshCw, Image, MessageSquare, Link, Music, PartyPopper, Monitor } from 'lucide-react';
+import DisplayControls from './components/DisplayControls';
+import MessageInput from './components/MessageInput';
+import UrlInput from './components/UrlInput';
+import DJControls from './components/DJControls';
+import YouTubeUrlManager from './components/YouTubeUrlManager';
 
-const mqttClient  = mqtt.connect('ws://swarm2:9001', { clientId: 'control_' + Math.random().toString(16).substr(2, 8)})
-
-mqttClient.on('connect', function () {
-  mqttClient.subscribe('control/action', function (err) { console.log(err) }); //to do error handling
-});
-
-mqttClient.on("message", (topic, message) => {
-  // message is Buffer
-  console.log(message.toString());
-});
-
-const reconnect = () => {
-  setTimeout(() => {
-    mqttClient.reconnect();
-  }, 5000);
-}
-
-mqttClient.on('close', () => {
-  console.log('Connection closed. Trying to reconnect...');
-  reconnect();
-});
-
+const mqttClient = mqtt.connect('ws://swarm2:9001', { clientId: 'control_' + Math.random().toString(16).substr(2, 8) });
 
 function App() {
   const [response, setResponse] = useState('');
-  const messageRef = useRef(null);
-  const urlRef = useRef(null);
+  const [playlist, setPlaylist] = useState([]);
+  const [isDJMode, setIsDJMode] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [currentTrack, setCurrentTrack] = useState(null);
+  const [playbackState, setPlaybackState] = useState('playing');
 
-  const handleRestartDisplay = () => {
-    mqttClient.publish('control/action', 'restart')
-    setResponse('Display restarted successfully');
-    setTimeout(() => {
-      setResponse('');
-    }, 10000);
+  useEffect(() => {
+    mqttClient.on('connect', function () {
+      setIsConnected(true);
+      subscribeToTopics();
+    });
+
+    mqttClient.on('close', function () {
+      setIsConnected(false);
+      console.log('Connection closed. Trying to reconnect...');
+    });
+
+    mqttClient.on('message', function (topic, message) {
+      if (topic === 'dj/current_track_info') {
+        setIsDJMode(true);
+        const trackInfo = JSON.parse(message.toString());
+
+        if (trackInfo.state === 'paused' || trackInfo.state === 'stopped') {
+          setPlaybackState(trackInfo.state);
+        } else {
+          setCurrentTrack(trackInfo);
+          setPlaybackState('playing');
+          fetchPlaylist(); // Fetch the playlist when the current track changes
+        }
+      }
+    });
+
+    //fetchPlaylist();
+  }, []);
+
+  useEffect(() => {
+    if (currentTrack) {
+      fetchPlaylist();
+    }
+  }, [currentTrack]);
+
+  const subscribeToTopics = () => {
+    mqttClient.subscribe('control/action', function (err) {
+      if (err) {
+        console.error('ACTION subscription error:', err);
+      } else {
+        console.log('ACTION subscription successful');
+      }
+    });
+    mqttClient.subscribe('dj/playlist', function (err) {
+      if (err) {
+        console.error('DJ/PLAYLIST subscription error:', err);
+      } else {
+        console.log('DJ/PLAYLIST subscription successful');
+      }
+    });
+    mqttClient.subscribe('dj/current_track_info', function (err) {
+      if (err) {
+        console.error('CURRENT_TRACK_INFO subscription error:', err);
+      } else {
+        console.log('CURRENT_TRACK_INFO subscription successful');
+      }
+    });
   };
 
-  const handleShowGallery = () => {
-    mqttClient.publish('control/action', 'gallery')
-    setResponse('Display changed successfully to gallery');
-    setTimeout(() => {
-      setResponse('');
-    }, 10000);
+  const fetchPlaylist = async () => {
+    try {
+      const response = await fetch('http://localhost:8090/get_playlist');
+      if (response.status === 401) {
+        const data = await response.json();
+        window.open(data.auth_url, '_blank');
+        return;
+      }
+      const data = await response.json();
+      setPlaylist(data);
+    } catch (error) {
+      console.error('Failed to fetch playlist:', error);
+    }
+  };
+
+  const handleSetMode = (mode) => {
+    mqttClient.publish('control/action', mode);
+    setResponse(`Display changed successfully to ${mode}`);
+    clearResponse();
   };
 
   const handleShowMessage = (message) => {
-    //strip : from message
     message = message.replace(/:/g, '');
     mqttClient.publish('control/action', 'message:' + message)
     setResponse(`Message "${message}" shown successfully`);
-    setTimeout(() => {
-      setResponse('');
-    }, 10000);
-
-    messageRef.current.value = '';
+    clearResponse();
+    //messageRef.current.value = '';
   };
 
-  const handleScrapeUrl = () => {
-    const url = urlRef.current.value;
-    if(url == "") { 
+  const handleScrapeUrl = (url) => {
+    //const url = urlRef.current.value;
+    if (url === "") {
       setResponse('No URL given');
-      setTimeout(() => {
-        setResponse('');
-      }, 10000);
+      clearResponse();
       return;
     }
-    fetch('http://raspberrypi:8090/scrape', {
+    fetch('http://localhost:8090/scrape', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url })
@@ -75,32 +121,89 @@ function App() {
       .then(response => {
         console.log(response);
         setResponse(`Scraped URL "${url}" successfully`);
-        setTimeout(() => {
-          setResponse('');
-        }, 10000);
+        clearResponse();
       })
       .catch(error => {
         console.error(error);
         setResponse(`Failed to scrape URL "${url}"`);
-        setTimeout(() => {
-          setResponse('');
-        }, 10000);
+        clearResponse();
       });
   };
 
+  const handleStartDJMode = async () => {
+    try {
+      const response = await fetch('http://localhost:8090/start_dj_mode', { method: 'POST' });
+      if (response.status !== 200) {
+        const data = await response.json();
+        setResponse(data.message);
+        return;
+      }
+      setIsDJMode(true);
+      setResponse('DJ mode started');
+      fetchPlaylist();
+    } catch (error) {
+      setResponse('Failed to start DJ mode');
+    }
+    clearResponse();
+  };
+
+  const handleStopDJMode = async () => {
+    try {
+      const response = await fetch('http://localhost:8090/stop_dj_mode', { method: 'POST' });
+      if (response.status !== 200) {
+        const data = await response.json();
+        setResponse(data.message);
+        return;
+      }
+      setIsDJMode(false);
+      setResponse('DJ mode stopped');
+    } catch (error) {
+      setResponse('Failed to stop DJ mode');
+    }
+    clearResponse();
+  };
+
+
+  const clearResponse = () => {
+    setTimeout(() => {
+      setResponse('');
+    }, 10000);
+  };
+
+
   return (
-    <div className="App">
-      <button onClick={handleRestartDisplay}>Restart Display</button>
-      <input placeholder="https//eenurlhier.nl" type="text" id="url" ref={urlRef} />
-      <button onClick={handleScrapeUrl}>Scrape URL</button>
-      <button onClick={handleShowGallery}>show gallery</button>
-      <button onClick={() => handleShowMessage(messageRef.current.value)}>Show Message</button>
-      <textarea placeholder="je bericht" type="text" id="message" ref={messageRef} onKeyDown={(event) => {
-        if (event.keyCode === 13) {
-          handleShowMessage(messageRef.current.value);
-        }
-      }} />
-      {response && <div className="status">{response}</div>}
+    <div className="app-container">
+      <div className="app-content">
+        <div className="app-header">
+          <h2>Feestweek Controller</h2>
+        </div>
+        <DisplayControls
+          handleSetMode={handleSetMode}
+          isDJMode={isDJMode}
+          handleStartDJMode={handleStartDJMode}
+          handleStopDJMode={handleStopDJMode}
+        />
+        <MessageInput handleShowMessage={handleShowMessage} />
+        <UrlInput handleScrapeUrl={handleScrapeUrl} />
+
+        {response && (
+          <div className="response">
+            {response}
+          </div>
+        )}
+
+        {isDJMode && (
+          <DJControls
+            playlist={playlist}
+            currentTrack={currentTrack}
+            playbackState={playbackState}
+            fetchPlaylist={fetchPlaylist}
+            setResponse={setResponse}
+          />
+        )}
+
+        <YouTubeUrlManager mqttClient={mqttClient} />
+      </div>
     </div>
   );
 }
