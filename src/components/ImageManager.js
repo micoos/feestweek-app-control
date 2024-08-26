@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Send, Trash2, ArrowLeft, Image as ImageIcon, RefreshCw, Save } from 'lucide-react';
-// IndexedDB helper functions
+import { Upload, Send, Trash2, ArrowLeft, Image as ImageIcon, RefreshCw, Save, Camera } from 'lucide-react';
+
 const dbName = 'ImageStore';
 const storeName = 'images';
 
@@ -55,10 +55,21 @@ function ImageManager({ mqttClient, onGoBack }) {
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
+  const [videoStream, setVideoStream] = useState(null);
 
   useEffect(() => {
     loadImages();
   }, []);
+
+  useEffect(() => {
+    if (videoStream) {
+      const video = document.querySelector('video');
+      if (video) {
+        video.srcObject = videoStream;
+      }
+    }
+  }, [videoStream]);
 
   const loadImages = async () => {
     try {
@@ -171,6 +182,48 @@ function ImageManager({ mqttClient, onGoBack }) {
     setIsModalOpen(false);
   };
 
+  const openCameraModal = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' } }
+      });
+      setVideoStream(stream);
+      setIsCameraModalOpen(true);
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      alert('Failed to access camera. Please try again.');
+    }
+  };
+
+  const closeCameraModal = () => {
+    if (videoStream) {
+      videoStream.getTracks().forEach(track => track.stop());
+      setVideoStream(null);
+    }
+    setIsCameraModalOpen(false);
+  };
+
+  const capturePhoto = () => {
+    if (videoStream) {
+      const video = document.querySelector('video');
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg');
+      const newImage = {
+        id: Date.now() + Math.random(),
+        data: dataUrl.split(',')[1],
+        type: 'image/jpeg'
+      };
+      addImage(newImage).then(() => {
+        loadImages();
+        closeCameraModal();
+      });
+    }
+  };
+
   return (
     <div className="image-manager">
       <div className="image-header">
@@ -193,6 +246,10 @@ function ImageManager({ mqttClient, onGoBack }) {
           <Upload className="icon" size={20} />
           Upload Image
         </label>
+        <button onClick={openCameraModal} className="btn btn-blue">
+          <Camera className="icon" size={20} />
+          Capture Photo
+        </button>
       </div>
       <div className="image-generator">
         <input
@@ -248,6 +305,19 @@ function ImageManager({ mqttClient, onGoBack }) {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <img src={generatedImage} alt="Generated Large" className="large-image" />
             <button onClick={closeModal} className="btn btn-red close-modal">
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+      {isCameraModalOpen && (
+        <div className="modal" onClick={closeCameraModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <video autoPlay className="video-feed"></video>
+            <button onClick={capturePhoto} className="btn btn-green">
+              Capture
+            </button>
+            <button onClick={closeCameraModal} className="btn btn-red">
               Close
             </button>
           </div>
