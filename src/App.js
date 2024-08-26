@@ -87,7 +87,7 @@ function App() {
 
   const fetchPlaylist = async () => {
     try {
-      const response = await fetch('http://localhost:8090/get_playlist');
+      const response = await fetch('http://swarm2:8090/get_playlist');
       if (response.status === 401) {
         const data = await response.json();
         window.open(data.auth_url, '_blank');
@@ -121,7 +121,7 @@ function App() {
       clearResponse();
       return;
     }
-    fetch('http://localhost:8090/scrape', {
+    fetch('http://swarm2:8090/scrape', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url })
@@ -140,7 +140,7 @@ function App() {
 
   const handleStartDJMode = async () => {
     try {
-      const response = await fetch('http://localhost:8090/start_dj_mode', { method: 'POST' });
+      const response = await fetch('http://swarm2:8090/start_dj_mode', { method: 'POST' });
       if (response.status !== 200) {
         const data = await response.json();
         setResponse(data.message);
@@ -157,7 +157,7 @@ function App() {
 
   const handleStopDJMode = async () => {
     try {
-      const response = await fetch('http://localhost:8090/stop_dj_mode', { method: 'POST' });
+      const response = await fetch('http://swarm2:8090/stop_dj_mode', { method: 'POST' });
       if (response.status !== 200) {
         const data = await response.json();
         setResponse(data.message);

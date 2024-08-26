@@ -76,7 +76,7 @@ function VideoManager({ mqttClient, onGoBack }) {
           const formData = new FormData();
           formData.append('video', file);
   
-          const response = await fetch('http://localhost:8090/upload', {
+          const response = await fetch('http://swarm2:8090/upload', {
             method: 'POST',
             body: formData,
           });
@@ -92,7 +92,7 @@ function VideoManager({ mqttClient, onGoBack }) {
             name: file.name,
             size: file.size,
             type: file.type,
-            url: `http://localhost:8090${result.url}`
+            url: `http://swarm2:8090${result.url}`
           };
   
           await addVideo(newVideo);
@@ -111,7 +111,7 @@ function VideoManager({ mqttClient, onGoBack }) {
     const removeVideo = async (videoToRemove) => {
       try {
         // First, delete from server
-        const response = await fetch(`http://localhost:8090/delete${new URL(videoToRemove.url).pathname}`, {
+        const response = await fetch(`http://swarm2:8090/delete${new URL(videoToRemove.url).pathname}`, {
           method: 'DELETE',
         });
   

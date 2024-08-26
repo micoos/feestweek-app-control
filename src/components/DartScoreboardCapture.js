@@ -63,7 +63,7 @@ const DartScoreboardCapture = ({ mqttClient, onGoBack }) => {
             };
 
             // Send the request to the server
-            const response = await fetch('http://localhost:8090/ai-prompt', {
+            const response = await fetch('http://swarm2:8090/ai-prompt', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

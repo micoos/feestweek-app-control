@@ -8,7 +8,7 @@ function DJControls({ playlist, currentTrack, playbackState, fetchPlaylist, setR
 
   const handlePausePlayback = async () => {
     try {
-      const response = await fetch('http://localhost:8090/pause_playback', { method: 'POST' });
+      const response = await fetch('http://swarm2:8090/pause_playback', { method: 'POST' });
       if (response.status !== 200) {
         const data = await response.json();
         setResponse(data.message);
@@ -23,7 +23,7 @@ function DJControls({ playlist, currentTrack, playbackState, fetchPlaylist, setR
 
   const handleResumePlayback = async () => {
     try {
-      const response = await fetch('http://localhost:8090/resume_playback', { method: 'POST' });
+      const response = await fetch('http://swarm2:8090/resume_playback', { method: 'POST' });
       if (response.status !== 200) {
         const data = await response.json();
         setResponse(data.message);
@@ -40,7 +40,7 @@ function DJControls({ playlist, currentTrack, playbackState, fetchPlaylist, setR
     const prompt = promptRef.current.value;
 
     try {
-      const response = await fetch('http://localhost:8090/ai_playlist_update', {
+      const response = await fetch('http://swarm2:8090/ai_playlist_update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt })
@@ -62,7 +62,7 @@ function DJControls({ playlist, currentTrack, playbackState, fetchPlaylist, setR
 
   const handleRemoveTrack = async (trackId) => {
     try {
-      const response = await fetch('http://localhost:8090/remove_track', {
+      const response = await fetch('http://swarm2:8090/remove_track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ track_id: trackId })
@@ -82,7 +82,7 @@ function DJControls({ playlist, currentTrack, playbackState, fetchPlaylist, setR
 
   const handlePlayNow = async (trackId) => {
     try {
-      const response = await fetch('http://localhost:8090/play_now', {
+      const response = await fetch('http://swarm2:8090/play_now', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ track_id: trackId })
@@ -101,7 +101,7 @@ function DJControls({ playlist, currentTrack, playbackState, fetchPlaylist, setR
 
   const setEnergyLevel = async (level) => {
     try {
-      const response = await fetch('http://localhost:8090/set_energy_level', {
+      const response = await fetch('http://swarm2:8090/set_energy_level', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ level })
