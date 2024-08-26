@@ -1,40 +1,58 @@
 // components/YouTubeUrlManager.js
 import React, { useState, useEffect } from 'react';
-import { Plus, Send, Trash2 } from 'lucide-react';
+import { Plus, Send, Trash2, ArrowLeft, Clock } from 'lucide-react';
 
-function YouTubeURLManager({ mqttClient }) {
-  const [urls, setUrls] = useState([]);
+function YouTubeUrlManager({ mqttClient, onGoBack }) {
+  const [videos, setVideos] = useState([]);
   const [newUrl, setNewUrl] = useState('');
+  const [startMinutes, setStartMinutes] = useState('');
+  const [startSeconds, setStartSeconds] = useState('');
+  const [endMinutes, setEndMinutes] = useState('');
+  const [endSeconds, setEndSeconds] = useState('');
 
   useEffect(() => {
-    const storedUrls = JSON.parse(localStorage.getItem('youtubeUrls')) || [];
-    setUrls(storedUrls);
+    const storedVideos = JSON.parse(localStorage.getItem('youtubeVideos')) || [];
+    setVideos(storedVideos);
   }, []);
 
-  const saveUrls = (updatedUrls) => {
-    localStorage.setItem('youtubeUrls', JSON.stringify(updatedUrls));
-    setUrls(updatedUrls);
+  const saveVideos = (updatedVideos) => {
+    localStorage.setItem('youtubeVideos', JSON.stringify(updatedVideos));
+    setVideos(updatedVideos);
   };
 
-  const addUrl = () => {
+  const addVideo = () => {
     if (newUrl && isValidYouTubeUrl(newUrl)) {
-      const updatedUrls = [...urls, newUrl];
-      saveUrls(updatedUrls);
+      const newVideo = {
+        url: newUrl,
+        startTime: timeToSeconds(startMinutes, startSeconds),
+        endTime: timeToSeconds(endMinutes, endSeconds)
+      };
+      const updatedVideos = [...videos, newVideo];
+      saveVideos(updatedVideos);
       setNewUrl('');
+      setStartMinutes('');
+      setStartSeconds('');
+      setEndMinutes('');
+      setEndSeconds('');
     } else {
       alert('Please enter a valid YouTube URL');
     }
   };
 
-  const removeUrl = (urlToRemove) => {
-    const updatedUrls = urls.filter(url => url !== urlToRemove);
-    saveUrls(updatedUrls);
+  const removeVideo = (videoToRemove) => {
+    const updatedVideos = videos.filter(video => video.url !== videoToRemove.url);
+    saveVideos(updatedVideos);
   };
 
-  const sendVideoId = (url) => {
-    const videoId = extractVideoId(url);
+  const sendVideoId = (video) => {
+    const videoId = extractVideoId(video.url);
     if (videoId) {
-      mqttClient.publish('control/youtube', videoId);
+      const payload = {
+        videoId,
+        startTime: video.startTime,
+        endTime: video.endTime
+      };
+      mqttClient.publish('control/youtube', JSON.stringify(payload));
     }
   };
 
@@ -54,9 +72,28 @@ function YouTubeURLManager({ mqttClient }) {
     return videoId ? `https://img.youtube.com/vi/${videoId}/0.jpg` : '';
   };
 
+  const timeToSeconds = (minutes, seconds) => {
+    const mins = parseInt(minutes) || 0;
+    const secs = parseInt(seconds) || 0;
+    return mins * 60 + secs;
+  };
+
+  const formatTime = (totalSeconds) => {
+    if (totalSeconds === null || totalSeconds === undefined) return '';
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
   return (
     <div className="youtube-url-manager">
-      <h3>YouTube Video Manager</h3>
+      <div className="youtube-header">
+        <button onClick={onGoBack} className="btn btn-blue go-back-btn">
+          <ArrowLeft className="icon" size={20} />
+          Go Back
+        </button>
+        <h3>YouTube Video Manager</h3>
+      </div>
       <div className="url-input">
         <input
           type="text"
@@ -65,21 +102,75 @@ function YouTubeURLManager({ mqttClient }) {
           placeholder="Enter YouTube URL"
           className="input"
         />
-        <button onClick={addUrl} className="btn btn-blue">
+        <div className="time-inputs">
+          <div className="time-input-group">
+            <input
+              type="number"
+              value={startMinutes}
+              onChange={(e) => setStartMinutes(e.target.value)}
+              placeholder="Start Min"
+              className="input time-input"
+              min="0"
+            />
+            <input
+              type="number"
+              value={startSeconds}
+              onChange={(e) => setStartSeconds(e.target.value)}
+              placeholder="Start Sec"
+              className="input time-input"
+              min="0"
+              max="59"
+            />
+          </div>
+          <div className="time-input-group">
+            <input
+              type="number"
+              value={endMinutes}
+              onChange={(e) => setEndMinutes(e.target.value)}
+              placeholder="End Min"
+              className="input time-input"
+              min="0"
+            />
+            <input
+              type="number"
+              value={endSeconds}
+              onChange={(e) => setEndSeconds(e.target.value)}
+              placeholder="End Sec"
+              className="input time-input"
+              min="0"
+              max="59"
+            />
+          </div>
+        </div>
+        <button onClick={addVideo} className="btn btn-blue">
           <Plus className="icon" size={20} />
-          Add URL
+          Add Video
         </button>
       </div>
       <div className="url-list">
-        {urls.map((url, index) => (
+        {videos.map((video, index) => (
           <div key={index} className="url-item">
-            <img src={getThumbnailUrl(url)} alt="Video thumbnail" className="thumbnail" />
+            <img src={getThumbnailUrl(video.url)} alt="Video thumbnail" className="thumbnail" />
+            <div className="video-info">
+              {video.startTime !== null && (
+                <span className="time-info">
+                  <Clock className="icon" size={16} />
+                  Start: {formatTime(video.startTime)}
+                </span>
+              )}
+              {video.endTime !== null && (
+                <span className="time-info">
+                  <Clock className="icon" size={16} />
+                  End: {formatTime(video.endTime)}
+                </span>
+              )}
+            </div>
             <div className="url-actions">
-              <button onClick={() => sendVideoId(url)} className="btn btn-green">
+              <button onClick={() => sendVideoId(video)} className="btn btn-green">
                 <Send className="icon" size={20} />
                 Send
               </button>
-              <button onClick={() => removeUrl(url)} className="btn btn-red">
+              <button onClick={() => removeVideo(video)} className="btn btn-red">
                 <Trash2 className="icon" size={20} />
                 Remove
               </button>
@@ -91,4 +182,4 @@ function YouTubeURLManager({ mqttClient }) {
   );
 }
 
-export default YouTubeURLManager;
+export default YouTubeUrlManager;

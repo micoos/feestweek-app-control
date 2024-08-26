@@ -38,7 +38,7 @@ function DJControls({ playlist, currentTrack, playbackState, fetchPlaylist, setR
 
   const handleAIPrompt = async (e) => {
     const prompt = promptRef.current.value;
-    
+
     try {
       const response = await fetch('http://localhost:8090/ai_playlist_update', {
         method: 'POST',
@@ -189,14 +189,14 @@ function DJControls({ playlist, currentTrack, playbackState, fetchPlaylist, setR
                 .map((track) => (
                   <li key={track.id} className={`playlist-item ${track.id === currentTrack?.id ? 'current-track' : ''}`}>
                     <span>{track.name} - {track.artist}</span>
-                    <div>
-                      <button onClick={() => handlePlayNow(track.id)} className="btn btn-blue">
-                        <PlayCircle size={20} />
-                      </button>
-                      <button onClick={() => handleRemoveTrack(track.id)} className="btn btn-red">
-                        <XCircle size={20} />
-                      </button>
-                    </div>
+
+                    <button onClick={() => handlePlayNow(track.id)} className="btn btn-blue">
+                      <PlayCircle size={20} />
+                    </button>
+                    <button onClick={() => handleRemoveTrack(track.id)} className="btn btn-red">
+                      <XCircle size={20} />
+                    </button>
+
                   </li>
                 ))}
             </ul>
@@ -214,14 +214,14 @@ function DJControls({ playlist, currentTrack, playbackState, fetchPlaylist, setR
                 .map((track) => (
                   <li key={track.id} className={`playlist-item ${track.id === currentTrack?.audio_features?.id ? 'current-track' : ''}`}>
                     <span>{track.name} - {track.artist}</span>
-                    <div>
-                      <button onClick={() => handlePlayNow(track.id)} className="btn btn-blue">
-                        <PlayCircle size={20} />
-                      </button>
-                      <button onClick={() => handleRemoveTrack(track.id)} className="btn btn-red">
-                        <XCircle size={20} />
-                      </button>
-                    </div>
+
+                    <button onClick={() => handlePlayNow(track.id)} className="btn btn-blue">
+                      <PlayCircle size={20} />
+                    </button>
+                    <button onClick={() => handleRemoveTrack(track.id)} className="btn btn-red">
+                      <XCircle size={20} />
+                    </button>
+
                   </li>
                 ))}
             </ul>

@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import mqtt from 'mqtt/dist/mqtt';
-import { RefreshCw, Image, MessageSquare, Link, Music, PartyPopper, Monitor } from 'lucide-react';
+import { RefreshCw, Image, MessageSquare, Link, Music, PartyPopper, Monitor, Youtube, Video, Camera } from 'lucide-react';
 import DisplayControls from './components/DisplayControls';
 import MessageInput from './components/MessageInput';
 import UrlInput from './components/UrlInput';
 import DJControls from './components/DJControls';
 import YouTubeUrlManager from './components/YouTubeUrlManager';
+import ImageManager from './components/ImageManager';
+import VideoManager from './components/VideoManager';
+import DartScoreboardCapture from './components/DartScoreboardCapture';
+
 
 const mqttClient = mqtt.connect('ws://swarm2:9001', { clientId: 'control_' + Math.random().toString(16).substr(2, 8) });
 
@@ -17,6 +21,10 @@ function App() {
   const [isConnected, setIsConnected] = useState(false);
   const [currentTrack, setCurrentTrack] = useState(null);
   const [playbackState, setPlaybackState] = useState('playing');
+  const [showYouTubeManager, setShowYouTubeManager] = useState(false);
+  const [showImageManager, setShowImageManager] = useState(false);
+  const [showVideoManager, setShowVideoManager] = useState(false);
+  const [showDartScoreboardCapture, setShowDartScoreboardCapture] = useState(false);
 
   useEffect(() => {
     mqttClient.on('connect', function () {
@@ -171,38 +179,84 @@ function App() {
   };
 
 
+  const toggleYouTubeManager = () => {
+    setShowYouTubeManager(!showYouTubeManager);
+  };
+
+  const toggleImageManager = () => {
+    setShowImageManager(!showImageManager);
+    setShowYouTubeManager(false);
+  };
+
+  const toggleVideoManager = () => {
+    setShowVideoManager(!showVideoManager);
+    setShowYouTubeManager(false);
+    setShowImageManager(false);
+  };
+
+  const toggleDartScoreboardCapture = () => {
+    setShowDartScoreboardCapture(!showDartScoreboardCapture);
+    setShowYouTubeManager(false);
+    setShowImageManager(false);
+    setShowVideoManager(false);
+  };
+
   return (
     <div className="app-container">
       <div className="app-content">
         <div className="app-header">
           <h2>Feestweek Controller</h2>
         </div>
-        <DisplayControls
-          handleSetMode={handleSetMode}
-          isDJMode={isDJMode}
-          handleStartDJMode={handleStartDJMode}
-          handleStopDJMode={handleStopDJMode}
-        />
-        <MessageInput handleShowMessage={handleShowMessage} />
-        <UrlInput handleScrapeUrl={handleScrapeUrl} />
-
-        {response && (
-          <div className="response">
-            {response}
-          </div>
+        {!showYouTubeManager && !showImageManager && !showVideoManager && !showDartScoreboardCapture ? (
+          <>
+            <DisplayControls
+              handleSetMode={handleSetMode}
+              isDJMode={isDJMode}
+              handleStartDJMode={handleStartDJMode}
+              handleStopDJMode={handleStopDJMode}
+            />
+            <MessageInput handleShowMessage={handleShowMessage} />
+            <UrlInput handleScrapeUrl={handleScrapeUrl} />
+            <button onClick={toggleYouTubeManager} className="btn btn-purple">
+              <Youtube className="icon" size={20} />
+              Manage YouTube Videos
+            </button>
+            <button onClick={toggleImageManager} className="btn btn-orange">
+              <Image className="icon" size={20} />
+              Manage Images
+            </button>
+            <button onClick={toggleVideoManager} className="btn btn-cyan">
+              <Video className="icon" size={20} />
+              Manage Videos
+            </button>
+            <button onClick={toggleDartScoreboardCapture} className="btn btn-indigo">
+              <Camera className="icon" size={20} />
+              Capture Dart Scoreboard
+            </button>
+            {response && (
+              <div className="response">
+                {response}
+              </div>
+            )}
+            {isDJMode && (
+              <DJControls
+                playlist={playlist}
+                currentTrack={currentTrack}
+                playbackState={playbackState}
+                fetchPlaylist={fetchPlaylist}
+                setResponse={setResponse}
+              />
+            )}
+          </>
+        ) : showYouTubeManager ? (
+          <YouTubeUrlManager mqttClient={mqttClient} onGoBack={toggleYouTubeManager} />
+        ) : showImageManager ? (
+          <ImageManager mqttClient={mqttClient} onGoBack={toggleImageManager} />
+        ) : showVideoManager ? (
+          <VideoManager mqttClient={mqttClient} onGoBack={toggleVideoManager} />
+        ) : (
+          <DartScoreboardCapture mqttClient={mqttClient} onGoBack={toggleDartScoreboardCapture} />
         )}
-
-        {isDJMode && (
-          <DJControls
-            playlist={playlist}
-            currentTrack={currentTrack}
-            playbackState={playbackState}
-            fetchPlaylist={fetchPlaylist}
-            setResponse={setResponse}
-          />
-        )}
-
-        <YouTubeUrlManager mqttClient={mqttClient} />
       </div>
     </div>
   );
