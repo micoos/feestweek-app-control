@@ -40,7 +40,7 @@ function DJControls({ playlist, currentTrack, playbackState, fetchPlaylist, setR
     const prompt = promptRef.current.value;
 
     try {
-      const response = await fetch('http://localhost:8090/ai_playlist_update', {
+      const response = await fetch('http://swarm2:8090/ai_playlist_update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt })

@@ -138,6 +138,11 @@ function App() {
       });
   };
 
+  const enableDJMode = () => {
+    setIsDJMode(true);
+    fetchPlaylist();
+  };
+
   const handleStartDJMode = async () => {
     try {
       const response = await fetch('http://swarm2:8090/start_dj_mode', { method: 'POST' });

@@ -25,6 +25,12 @@ function DisplayControls({ handleSetMode, isDJMode, handleStartDJMode, handleSto
         <Music className="icon" size={20} />
         {isDJMode ? 'Stop DJ Mode' : 'Start DJ Mode'}
       </button>
+      {isDJMode && (
+        <button onClick={() => handleSetMode('dj')} className="btn btn-blue">
+          <Music className="icon" size={20} />
+          Switch to DJ Mode
+        </button>
+      )}
     </div>
   );
 }
