@@ -24,6 +24,7 @@ const addImage = async (image) => {
     const request = store.add(image);
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
+    transaction.oncomplete = () => db.close();
   });
 };
 
@@ -35,6 +36,7 @@ const getAllImages = async () => {
     const request = store.getAll();
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
+    transaction.oncomplete = () => db.close();
   });
 };
 
@@ -46,6 +48,7 @@ const deleteImage = async (id) => {
     const request = store.delete(id);
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
+    transaction.oncomplete = () => db.close();
   });
 };
 
